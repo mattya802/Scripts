@@ -1,16 +1,6 @@
-// 
-// ****************                                     ****************
-// ****************                                     ****************
 //
-// 10/22/20 - Version 6
-//
-// ****************                                     ****************
-// ****************                                     ****************
-//
-//
-// Please see https://confluence.meditech.com/display/HCA/Copy+Time+Off+Google+Calendar+Script for more information and requirements to run this script
-//
-//
+// Requirements:  Need to enable the following Advanced Google Services: Admin SDK and Calendar API
+//                 
 //
 // Global variables
 var startPeriod = new Date();        // now
@@ -20,27 +10,15 @@ endPeriod.setDate(startPeriod.getDate() + 180);   // 180 days from now
 function syncTimeOff() {
   // Define source calendars to "pull" time off events from
   var sources = [
-    // Temporary additions
-    //CalendarApp.getCalendarById('akemsley@meditech.com'),
-    // My calendar
-    CalendarApp.getCalendarById('maudette@meditech.com'),
-    // My group's calendars
-    CalendarApp.getCalendarById('mpmatthews@meditech.com'),
-    CalendarApp.getCalendarById('dcondon@meditech.com'),
-    CalendarApp.getCalendarById('pdisu@meditech.com'),
-    CalendarApp.getCalendarById('scutler@meditech.com'),
-    CalendarApp.getCalendarById('nvaillancourt@meditech.com'),
-    // Supervisor
-    CalendarApp.getCalendarById('jaspinall@meditech.com'),
-    // Manager
-    CalendarApp.getCalendarById('lgunning@meditech.com')
+    // Insert source calendars here
+    CalendarApp.getCalendarById('source1@gmail.com'),
+    CalendarApp.getCalendarById('source2@gmail.com')
   ];
   // Define target calendars
   var targets = [
-    // Matt's group time off
-    CalendarApp.getCalendarById('c_jcu66cip02enk5jcu1e059271c@group.calendar.google.com'),
-    // Jims's group time off
-    CalendarApp.getCalendarById('c_0gc2jbi8pf61vm917919qnlpac@group.calendar.google.com')
+    // Insert target calendars here
+    CalendarApp.getCalendarById('target1@gmail.com'),
+    CalendarApp.getCalendarById('target2@gmail.com')
   ];
   // Loop through the source calendars
   sources.forEach( function(source) {
@@ -58,7 +36,6 @@ function syncTimeOff() {
 function checkCalendar(source,targets) {
   //
   // Get events from source calendars
-  // New code as of 10/8/20 to avoid having to subscribe to every calendar and instead use the Calendar API. 
   var calendarId = source.getId();
   var events = Calendar.Events.list(calendarId, {
     timeMin: startPeriod.toISOString(),
@@ -80,7 +57,6 @@ function checkCalendar(source,targets) {
 
 function maybeCopyEvent(source,targets,event) {
   var calendarId = source.getId();
-  // New code as of 10/8/20 to avoid using Contacts and just use AdminDirectory to get fullName
   var result = AdminDirectory.Users.get(calendarId, {fields:'name',viewType:'domain_public'});
   var fullName = result.name.fullName;
   var newTitle = fullName.concat(" ",event.summary);
@@ -101,8 +77,6 @@ function targetMaybeCreateAllDayEvent(newTitle,event,target,calendarId) {
   var startTime = new Date(tempStartTime.getTime() + 4 * 60 * 60 * 1000);
   var tempEndTime = new Date(event.end.date);
   var endTime = new Date(tempEndTime.getTime() + 4 * 60 * 60 * 1000);
-  //Logger.log("startdate",startTime,"start.datetime",event.start.dateTime);
-  //Logger.log("enddate",endTime,"end.datetime",event.end.dateTime);
   var targetEventsInTimeFrame = target.getEvents(startTime,endTime,{search:newTitle});
   // Only create if the event doesn't already exist in the target calendar
   if(targetEventsInTimeFrame.length===0) {
@@ -113,7 +87,6 @@ function targetMaybeCreateAllDayEvent(newTitle,event,target,calendarId) {
 function targetMaybeCreateEvent(newTitle,event,target,calendarId) {
   var startTime = new Date(event.start.dateTime);
   var endTime = new Date(event.end.dateTime);
-    //Logger.log(startTime,endTime);
   var targetEventsInTimeFrame = target.getEvents(startTime,endTime,{search:newTitle});
   // Only create if the event doesn't already exist in the target calendar
   if(targetEventsInTimeFrame.length===0) {
@@ -138,7 +111,6 @@ function targetMaybeDeleteEvent(target) {
     q: "Time off",
     });
     if (sourceEvents.items.length===0) {
-    Logger.log("delete",targetEvent.getTitle(),targetStartTime); 
     targetEvent.deleteEvent();
     }
   });    
@@ -178,17 +150,14 @@ function targetMaybeModifyEvent(target) {
     }
     if (targetStartTime.getTime() != sourceStartTime.getTime()) {
       if (targetEndTime.getTime() != sourceEndTime.getTime()) {
-        Logger.log("about to set new start and end time");
         setNewStartAndEndDate(targetEvent,sourceStartTime,sourceEndTime,allDayEvent);
       }
       else {
-        Logger.log("about to set new start");
         setNewStartAndEndDate(targetEvent,sourceStartTime,sourceEndTime,allDayEvent);
       }
     }
       else {
         if (targetEndTime.getTime() != sourceEndTime.getTime()) {
-          Logger.log("about to set new end time");
           setNewStartAndEndDate(targetEvent,sourceStartTime,sourceEndTime,allDayEvent);
         }
       }
