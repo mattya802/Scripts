@@ -1,2 +1,2 @@
-# Scripts
-Various scripts used/written for work. Mostly PowerShell.
+# Utilities
+Various utilities used/written for work and personal use. 
