@@ -90,6 +90,15 @@ function Expand() {
         var module = applications[j][0];
         arrayRowData.splice(0, 1, module.concat(" ",application));
         arrayRowData.splice(1, 0, jiraNumbers[j][0]);
+        // Add change number as required association to other change numbers on that same jira
+        var requiredAssociations = arrayRowData[8];
+        if (requiredAssociations) {
+          for (var l=0;l<jiraNumbers.length;l+=1) {
+            requiredAssociations = requiredAssociations.concat(" ",module," ",application," ",jiraNumbers[l][0]);
+          }
+        arrayRowData[8] = requiredAssociations;
+        }
+        // Append finalized data to new sheet
         desiredOutcomeSheet.appendRow(arrayRowData);
       }
     }
@@ -98,4 +107,9 @@ function Expand() {
   var sortRange = desiredOutcomeSheet.getRange(2, 1, desiredOutcomeSheet.getLastRow() - 1, desiredOutcomeSheet.getLastColumn());
   sortRange.sort(1);
   desiredOutcomeSheet.setFrozenRows(1);
+  var formatRange = desiredOutcomeSheet.getRange(2, 6, desiredOutcomeSheet.getLastRow() - 1, desiredOutcomeSheet.getLastColumn());
+  formatRange.setWrap(true);
+  desiredOutcomeSheet.autoResizeColumns(1,5);
+  desiredOutcomeSheet.setColumnWidth(6, 300);
+  desiredOutcomeSheet.setColumnWidths(8, 2, 300);
 }
